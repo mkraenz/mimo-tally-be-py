@@ -156,6 +156,10 @@ class DisbursementCreate(SQLModel):
 
 
 class DisbursementPublic(SQLModel):
+    @staticmethod
+    def make(d: Disbursement):
+        return DisbursementPublic(**d.model_dump(), paid_amount=Money(**d.model_dump()))
+
     id: uuid.UUID
     payer_id: str
     paid_for_user_id: str
@@ -163,3 +167,8 @@ class DisbursementPublic(SQLModel):
     created_at: datetime
     updated_at: datetime
     paid_amount: Money
+
+
+class DisbursementsPublic(SQLModel):
+    data: list[DisbursementPublic]
+    total: int = Field(int, description="The total count of resources.")
