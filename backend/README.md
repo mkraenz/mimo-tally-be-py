@@ -163,6 +163,13 @@ alembic upgrade head
 
 If you don't want to start with the default models and want to remove them / modify them, from the beginning, without having any previous revision, you can remove the revision files (`.py` Python files) under `./backend/app/alembic/versions/`. And then create a first migration as described above.
 
+Normally I would have expected that the generated file becomes available on the host machine because the backend directory is mounted as a volume in the container. But it doesn't seem to work. TODO fix at some point. For the time being, you can use copy the file running the following command on your host machine:
+
+```sh
+# assuming you are in backend/ directory on the host machine
+docker compose cp backend:/path/to/file/in/container ./app/alembic/versions/
+```
+
 ## Email Templates
 
 The email templates are in `./backend/app/email-templates/`. Here, there are two directories: `build` and `src`. The `src` directory contains the source files that are used to build the final email templates. The `build` directory contains the final email templates that are used by the application.
