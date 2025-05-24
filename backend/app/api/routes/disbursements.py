@@ -1,50 +1,13 @@
-from datetime import datetime
-from enum import Enum
-from uuid import UUID
-
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
 
 from app.api.deps import SessionDep
-from app.models import Disbursement
+from app.models import Disbursement, DisbursementPublic, Money
 
 router = APIRouter(prefix="/disbursements", tags=["disbursements"])
 
 
-class Currency(Enum):
-    JPY = "JPY"
-    EUR = "EUR"
-
-
-class Money(BaseModel):
-    amount: float = Field(
-        ...,
-        description="The amount paid in the specified currency.",
-        examples=[1.0],
-    )
-    currency: Currency = Field(Currency.EUR)
-
-
-class CreateDisbursementDto(BaseModel):
-    payer_id: str
-    paid_for_user_id: str
-    comment: str | None = Field(max_length=512, default=None)
-    paid_amount: Money
-
-
-class GetDisbursementDto(BaseModel):
-    id: UUID
-    payer_id: str
-    paid_for_user_id: str
-    comment: str | None
-    created_at: datetime
-    updated_at: datetime
-    paid_amount: Money
-
-
-@router.post("/", response_model=GetDisbursementDto)
-def create(dto: CreateDisbursementDto, session: SessionDep) -> GetDisbursementDto:
-    # now = datetime.now(timezone.utc)
+@router.post("/", response_model=DisbursementPublic)
+def create(dto: DisbursementPublic, session: SessionDep) -> DisbursementPublic:
     disbursement = Disbursement.model_validate(
         dto,
         update={
@@ -55,7 +18,7 @@ def create(dto: CreateDisbursementDto, session: SessionDep) -> GetDisbursementDt
     session.add(disbursement)
     session.commit()
     session.refresh(disbursement)
-    result = GetDisbursementDto(
+    result = DisbursementPublic(
         **disbursement.model_dump(), paid_amount=Money(**disbursement.model_dump())
     )
     return result

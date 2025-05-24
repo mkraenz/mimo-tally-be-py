@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime
+from enum import Enum
 
 from pydantic import EmailStr
+from pydantic import Field as PdField
 from sqlalchemy import TIMESTAMP, Column, func
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -115,6 +117,11 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
+class Currency(Enum):
+    JPY = "JPY"
+    EUR = "EUR"
+
+
 class Disbursement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     payer_id: str
@@ -131,3 +138,28 @@ class Disbursement(SQLModel, table=True):
             TIMESTAMP, server_default=func.now(), onupdate=func.current_timestamp()
         ),
     )
+
+
+class Money(SQLModel):
+    amount: float = PdField(
+        description="The amount paid in the specified currency.",
+        examples=[1.0],
+    )
+    currency: Currency = Field(Currency.EUR)
+
+
+class DisbursementCreate(SQLModel):
+    payer_id: str
+    paid_for_user_id: str
+    comment: str | None = Field(max_length=512, default=None)
+    paid_amount: Money
+
+
+class DisbursementPublic(SQLModel):
+    id: uuid.UUID
+    payer_id: str
+    paid_for_user_id: str
+    comment: str | None
+    created_at: datetime
+    updated_at: datetime
+    paid_amount: Money
