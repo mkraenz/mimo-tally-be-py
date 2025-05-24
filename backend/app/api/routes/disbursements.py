@@ -1,17 +1,25 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, status
+from pydantic import UUID4
 from sqlalchemy import func
 from sqlmodel import select
 
 from app.api.deps import SessionDep
-from app.models import Disbursement, DisbursementPublic, DisbursementsPublic, Money
+from app.api.routes.disbursements_repo import DisbursementRepositoryDep
+from app.models import (
+    Disbursement,
+    DisbursementCreate,
+    DisbursementPublic,
+    DisbursementsPublic,
+    Money,
+)
 
 router = APIRouter(prefix="/disbursements", tags=["disbursements"])
 
 
 @router.post("/", response_model=DisbursementPublic)
-def create(dto: DisbursementPublic, session: SessionDep) -> DisbursementPublic:
+def create(dto: DisbursementCreate, session: SessionDep) -> DisbursementPublic:
     disbursement = Disbursement.model_validate(
         dto,
         update={
@@ -32,7 +40,7 @@ def count(session: SessionDep):
     return session.exec(statement).one()
 
 
-@router.get("/", response_model=DisbursementsPublic)
+@router.get("/")
 def find_all(
     session: SessionDep,
     limit: Annotated[int, Query(max=100)] = 10,
@@ -44,3 +52,29 @@ def find_all(
     data = list(map(DisbursementPublic.make, disbursements))
     total = count(session)
     return DisbursementsPublic(data=data, total=total)
+
+
+def not_found_exception() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found"
+    )
+
+
+@router.get("/{id}")
+def find_one(id: UUID4, repo: DisbursementRepositoryDep) -> DisbursementPublic:
+    disbursement = repo.find_one(id)
+    if not disbursement:
+        raise not_found_exception()
+    return DisbursementPublic.make(disbursement)
+
+
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    description="Soft-deletes the given resource.",
+)
+def delete(id: UUID4, repo: DisbursementRepositoryDep) -> None:
+    disbursement = repo.find_one(id)
+    if not disbursement:
+        raise not_found_exception()
+    repo.soft_delete(disbursement)

@@ -1,8 +1,8 @@
-"""Add timestamps to disbursement
+"""add timestamps to disbursement
 
-Revision ID: 15f10db21cd9
+Revision ID: 9042993352c9
 Revises: fa9e4238d483
-Create Date: 2025-05-24 06:44:42.397017
+Create Date: 2025-05-24 19:30:15.596361
 
 """
 
@@ -11,7 +11,7 @@ import sqlmodel.sql.sqltypes
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "15f10db21cd9"
+revision = "9042993352c9"
 down_revision = "fa9e4238d483"
 branch_labels = None
 depends_on = None
@@ -22,13 +22,19 @@ def upgrade():
     op.add_column(
         "disbursement",
         sa.Column(
-            "created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=True
+            "created_at",
+            sa.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
     )
     op.add_column(
         "disbursement",
         sa.Column(
-            "updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=True
+            "updated_at",
+            sa.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
     )
     # ### end Alembic commands ###

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 from pydantic import Field as PdField
 from sqlalchemy import TIMESTAMP, Column, func
 from sqlmodel import Field, Relationship, SQLModel
@@ -122,22 +122,36 @@ class Currency(Enum):
     EUR = "EUR"
 
 
-class Disbursement(SQLModel, table=True):
+# https://github.com/fastapi/sqlmodel/issues/70#issuecomment-912327485
+class TimestampedMixin(BaseModel):
+    created_at: datetime | None = Field(
+        None,
+        sa_column=Column(TIMESTAMP, server_default=func.now(), nullable=False),
+    )
+    updated_at: datetime | None = Field(
+        None,
+        sa_column=Column(
+            TIMESTAMP,
+            server_default=func.now(),
+            onupdate=func.current_timestamp(),
+            nullable=False,
+        ),
+    )
+
+
+class SoftDeletableMixin(BaseModel):
+    deleted_at: datetime | None = Field(
+        None, sa_column=Column(TIMESTAMP, nullable=True)
+    )
+
+
+class Disbursement(SQLModel, TimestampedMixin, SoftDeletableMixin, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     payer_id: str
     paid_for_user_id: str
     amount: float
     currency: str
     comment: str | None
-    created_at: datetime | None = Field(
-        None, sa_column=Column(TIMESTAMP, server_default=func.now())
-    )
-    updated_at: datetime | None = Field(
-        None,
-        sa_column=Column(
-            TIMESTAMP, server_default=func.now(), onupdate=func.current_timestamp()
-        ),
-    )
 
 
 class Money(SQLModel):
