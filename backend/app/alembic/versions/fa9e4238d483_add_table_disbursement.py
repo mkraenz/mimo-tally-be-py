@@ -1,8 +1,8 @@
 """Add table disbursement
 
-Revision ID: f1b81aea6089
+Revision ID: fa9e4238d483
 Revises: 1a31ce608336
-Create Date: 2025-05-23 20:42:15.563831
+Create Date: 2025-05-24 06:13:55.198201
 
 """
 
@@ -11,7 +11,7 @@ import sqlmodel.sql.sqltypes
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "f1b81aea6089"
+revision = "fa9e4238d483"
 down_revision = "1a31ce608336"
 branch_labels = None
 depends_on = None
@@ -26,7 +26,7 @@ def upgrade():
         sa.Column(
             "paid_for_user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False
         ),
-        sa.Column("amount", sa.Integer(), nullable=False),
+        sa.Column("amount", sa.Float(), nullable=False),
         sa.Column("currency", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("comment", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.PrimaryKeyConstraint("id"),

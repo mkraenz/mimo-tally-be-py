@@ -117,7 +117,7 @@ class Disbursement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     payer_id: str
     paid_for_user_id: str
-    amount: int
+    amount: float
     currency: str
     comment: str | None
     # created_at: datetime
