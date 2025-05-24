@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
@@ -19,7 +20,7 @@ class Money(BaseModel):
     amount: float = Field(
         ...,
         description="The amount paid in the specified currency.",
-        examples=[1],
+        examples=[1.0],
     )
     currency: Currency = Field(Currency.EUR)
 
@@ -36,8 +37,8 @@ class GetDisbursementDto(BaseModel):
     payer_id: str
     paid_for_user_id: str
     comment: str | None
-    # created_at: datetime
-    # updated_at: datetime
+    created_at: datetime
+    updated_at: datetime
     paid_amount: Money
 
 

@@ -1,6 +1,8 @@
 import uuid
+from datetime import datetime
 
 from pydantic import EmailStr
+from sqlalchemy import TIMESTAMP, Column, func
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -120,5 +122,12 @@ class Disbursement(SQLModel, table=True):
     amount: float
     currency: str
     comment: str | None
-    # created_at: datetime
-    # updated_at: datetime
+    created_at: datetime | None = Field(
+        None, sa_column=Column(TIMESTAMP, server_default=func.now())
+    )
+    updated_at: datetime | None = Field(
+        None,
+        sa_column=Column(
+            TIMESTAMP, server_default=func.now(), onupdate=func.current_timestamp()
+        ),
+    )
