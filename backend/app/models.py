@@ -2,9 +2,8 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 from pydantic import Field as PdField
-from sqlalchemy import TIMESTAMP, Column, func
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -123,29 +122,29 @@ class Currency(Enum):
 
 
 # https://github.com/fastapi/sqlmodel/issues/70#issuecomment-912327485
-class TimestampedMixin(BaseModel):
-    created_at: datetime | None = Field(
-        None,
-        sa_column=Column(TIMESTAMP, server_default=func.now(), nullable=False),
-    )
-    updated_at: datetime | None = Field(
-        None,
-        sa_column=Column(
-            TIMESTAMP,
-            server_default=func.now(),
-            onupdate=func.current_timestamp(),
-            nullable=False,
-        ),
-    )
+# class TimestampedMixin(BaseModel):
+#     created_at: datetime | None = Field(
+#         None,
+#         sa_column=Column(TIMESTAMP, server_default=func.now(), nullable=False),
+#     )
+#     updated_at: datetime | None = Field(
+#         None,
+#         sa_column=Column(
+#             TIMESTAMP,
+#             server_default=func.now(),
+#             onupdate=func.current_timestamp(),
+#             nullable=False,
+#         ),
+#     )
 
 
-class SoftDeletableMixin(BaseModel):
-    deleted_at: datetime | None = Field(
-        None, sa_column=Column(TIMESTAMP, nullable=True)
-    )
+# class SoftDeletableMixin(BaseModel):
+#     deleted_at: datetime | None = Field(
+#         None, sa_column=Column(TIMESTAMP, nullable=True)
+#     )
 
 
-class Disbursement(SQLModel, TimestampedMixin, SoftDeletableMixin, table=True):
+class Disbursement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     payer_id: str
     paid_for_user_id: str
@@ -193,7 +192,7 @@ class SettlementCreate(SQLModel):
     affected_disbursement_ids: list[str]
 
 
-class Settlement(SQLModel, TimestampedMixin, SoftDeletableMixin, table=True):
+class Settlement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     # owner: User
     # receiving_party: User
