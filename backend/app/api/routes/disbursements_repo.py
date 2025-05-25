@@ -1,9 +1,11 @@
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import Depends
 from pydantic import UUID4
-from sqlmodel import select
+from sqlalchemy import func
+from sqlmodel import col, select
 
 from app.api.deps import SessionDep
 from app.models import Disbursement
@@ -13,16 +15,33 @@ class DisbursementsRepository:
     def __init__(self, session: SessionDep) -> None:
         self.session = session
 
-    def find_one(self, id: UUID4) -> Disbursement | None:
+    def find_one_owned(self, id: UUID4, owner_id: UUID4) -> Disbursement | None:
         statement = (
             select(Disbursement)
             .where(Disbursement.id == id)
-            .where(
-                # https://github.com/fastapi/sqlmodel/issues/109#issuecomment-2585072083
-                Disbursement.deleted_at == None  # noqa E711 Comparison to `None` should be `cond is None`.
-            )
+            .where(Disbursement.owner_id == owner_id)
+            .where(col(Disbursement.deleted_at).is_(None))
         )
         return self.session.exec(statement).one_or_none()
+
+    def find_all_owned(
+        self, owner_id: UUID4, limit: int, offset: int
+    ) -> Sequence[Disbursement]:
+        get_all = (
+            select(Disbursement)
+            .where(Disbursement.owner_id == owner_id)
+            .offset(offset)
+            .limit(limit)
+        )
+        return self.session.exec(get_all).all()
+
+    def count_owned(self, owner_id: UUID4) -> int:
+        statement = (
+            select(func.count())
+            .select_from(Disbursement)
+            .where(Disbursement.owner_id == owner_id)
+        )
+        return self.session.exec(statement).one()
 
     def soft_delete(self, disbursement: Disbursement) -> None:
         disbursement.sqlmodel_update({"deleted_at": datetime.now(timezone.utc)})

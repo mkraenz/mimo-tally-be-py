@@ -7,7 +7,14 @@ from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.http_exceptions import not_found_exception
-from app.models import Disbursement, Settlement, SettlementCreate, SettlementPublic
+from app.api.routes.settlements_repo import SettlementsRepositoryDep
+from app.models import (
+    Disbursement,
+    Settlement,
+    SettlementCreate,
+    SettlementPublic,
+    SettlementsPublic,
+)
 
 router = APIRouter(prefix="/settlements", tags=["settlements"])
 
@@ -32,6 +39,8 @@ def create(
     current_user: CurrentUser,
     session: SessionDep,
 ):
+    # TODO refactor
+    # TODO sender and receiver can be identical
     assert_current_user_is_settling(dto, current_user)
     find_affected_disbursements = (
         select(Disbursement)
@@ -73,31 +82,19 @@ def create(
     return settlement
 
 
-# TODO turn into SettlementsPublic with a total count
-@router.get("/", response_model=list[SettlementPublic])
-def find_all_owned(current_user: CurrentUser, session: SessionDep):
-    statement = (
-        select(Settlement)
-        .where(
-            Settlement.deleted_at == None  # noqa E711 Comparison to `None` should be `cond is None`.
-        )
-        .where(Settlement.owner_id == current_user.id)
-    )
-    settlements = session.exec(statement).all()
-    return settlements
+@router.get("/")
+def find_all_owned(
+    current_user: CurrentUser, repo: SettlementsRepositoryDep
+) -> SettlementsPublic:
+    settlements = repo.find_all_owned(current_user.id)
+    total = repo.count_owned(current_user.id)
+    settlements_mapped = list(map(SettlementPublic.make, settlements))
+    return SettlementsPublic(data=settlements_mapped, total=total)
 
 
 @router.get("/{id}", response_model=SettlementPublic)
-def find_one(id: UUID4, current_user: CurrentUser, session: SessionDep):
-    statement = (
-        select(Settlement)
-        .where(
-            Settlement.deleted_at == None  # noqa E711 Comparison to `None` should be `cond is None`.
-        )
-        .where(Settlement.owner_id == current_user.id)
-        .where(Settlement.id == id)
-    )
-    settlement = session.exec(statement).one_or_none()
+def find_one(id: UUID4, current_user: CurrentUser, repo: SettlementsRepositoryDep):
+    settlement = repo.find_one_owned(id, owner_id=current_user.id)
     if not settlement:
         raise not_found_exception()
     return settlement

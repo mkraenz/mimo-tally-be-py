@@ -75,6 +75,11 @@ class User(UserBase, table=True):
         cascade_delete=True,
         sa_relationship_kwargs={"foreign_keys": "Settlement.sending_party_id"},
     )
+    owned_disbursements: list["Disbursement"] = Relationship(
+        back_populates="owner",
+        cascade_delete=True,
+        sa_relationship_kwargs={"foreign_keys": "Disbursement.owner_id"},
+    )
 
 
 # Properties to return via API, id is always required
@@ -151,6 +156,14 @@ class Currency(Enum):
 
 class Disbursement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    owner: User | None = Relationship(
+        back_populates="owned_disbursements",
+        sa_relationship_kwargs={"foreign_keys": "Disbursement.owner_id"},
+    )
+
     payer_id: str
     paid_for_user_id: str
     amount: float
@@ -279,6 +292,10 @@ class Settlement(SQLModel, table=True):
 
 
 class SettlementPublic(SQLModel):
+    @staticmethod
+    def make(s: Settlement) -> "SettlementPublic":
+        return SettlementPublic(**s.model_dump())
+
     id: uuid.UUID
     owner_id: uuid.UUID
     receiving_party_id: uuid.UUID
@@ -288,3 +305,8 @@ class SettlementPublic(SQLModel):
     settled_at: datetime
     created_at: datetime
     updated_at: datetime
+
+
+class SettlementsPublic(SQLModel):
+    data: list[SettlementPublic]
+    total: int = Field(int, description="The total count of resources.")
