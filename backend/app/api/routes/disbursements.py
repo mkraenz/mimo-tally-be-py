@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 from pydantic import UUID4
 from sqlalchemy import func
 from sqlmodel import select
 
 from app.api.deps import SessionDep
 from app.api.routes.disbursements_repo import DisbursementRepositoryDep
+from app.api.routes.http_exceptions import not_found_exception
 from app.models import (
     Disbursement,
     DisbursementCreate,
@@ -52,12 +53,6 @@ def find_all(
     data = list(map(DisbursementPublic.make, disbursements))
     total = count(session)
     return DisbursementsPublic(data=data, total=total)
-
-
-def not_found_exception() -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found"
-    )
 
 
 @router.get("/{id}")
