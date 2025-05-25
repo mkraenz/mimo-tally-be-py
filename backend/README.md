@@ -167,7 +167,9 @@ Normally I would have expected that the generated file becomes available on the 
 
 ```sh
 # assuming you are in backend/ directory on the host machine
-docker compose cp backend:/path/to/file/in/container ./app/alembic/versions/
+docker compose cp backend:/path/to/file/in/container.py ./app/alembic/versions/
+# alternatively, use this convenience script
+./scripts/cp-migration-file.sh /path/to/file/in/container.py
 ```
 
 ## Email Templates

@@ -276,3 +276,15 @@ class Settlement(SQLModel, table=True):
         ),
     )
     deleted_at: datetime | None = None
+
+
+class SettlementPublic(SQLModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    receiving_party_id: uuid.UUID
+    sending_party_id: uuid.UUID
+    amount_paid: float
+    currency: str
+    settled_at: datetime
+    created_at: datetime
+    updated_at: datetime
