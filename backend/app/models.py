@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from pydantic import EmailStr
+from pydantic import UUID4, EmailStr
 from pydantic import Field as PdField
 from sqlalchemy import TIMESTAMP, Column, DateTime, func
 from sqlmodel import Field, Relationship, SQLModel
@@ -217,8 +217,12 @@ class DisbursementsPublic(SQLModel):
 
 
 class SettlementCreate(SQLModel):
+    settled_disbursement_ids: list[str] = Field(min_length=1, unique_items=True)
+    receiving_party_id: UUID4
+    sending_party_id: UUID4
     settled_at: datetime
-    affected_disbursement_ids: list[str] = Field(min_length=1, unique_items=True)
+    amount_paid: float
+    currency: Currency
 
 
 class Settlement(SQLModel, table=True):
@@ -254,7 +258,7 @@ class Settlement(SQLModel, table=True):
         sa_relationship_kwargs={"foreign_keys": "Disbursement.settlement_id"},
     )
 
-    amount_paid: int
+    amount_paid: float
     currency: str
 
     settled_at: datetime
