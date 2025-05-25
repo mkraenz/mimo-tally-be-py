@@ -7,6 +7,18 @@ from pydantic import Field as PdField
 from sqlalchemy import TIMESTAMP, Column, DateTime, func
 from sqlmodel import Field, Relationship, SQLModel
 
+# this must come BEFORE we set up our model classes
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+metadata = SQLModel.metadata
+metadata.naming_convention = NAMING_CONVENTION
+
 
 # Shared properties
 class UserBase(SQLModel):
@@ -158,11 +170,15 @@ class Disbursement(SQLModel, table=True):
         ),
     )
     deleted_at: datetime | None = None
-    # settlement_id: uuid.UUID = Field(
-    #     foreign_key="settlement.id",
-    #     nullable=False,
-    # )
-    # settlement: "Settlement" = Relationship(back_populates="disbursements")
+    settlement_id: uuid.UUID | None = Field(
+        None,
+        foreign_key="settlement.id",
+        nullable=True,
+    )
+    settlement: "Settlement" = Relationship(
+        back_populates="settled_disbursements",
+        sa_relationship_kwargs={"foreign_keys": "Disbursement.settlement_id"},
+    )
 
 
 class Money(SQLModel):
@@ -202,7 +218,7 @@ class DisbursementsPublic(SQLModel):
 
 class SettlementCreate(SQLModel):
     settled_at: datetime
-    affected_disbursement_ids: list[str]
+    affected_disbursement_ids: list[str] = Field(min_length=1, unique_items=True)
 
 
 class Settlement(SQLModel, table=True):
@@ -232,9 +248,11 @@ class Settlement(SQLModel, table=True):
         sa_relationship_kwargs={"foreign_keys": "Settlement.sending_party_id"},
     )
 
-    # settled_disbursements: list[Disbursement] = Relationship(
-    #     back_populates="settlement", cascade_delete=True
-    # )
+    settled_disbursements: list[Disbursement] = Relationship(
+        back_populates="settlement",
+        cascade_delete=True,
+        sa_relationship_kwargs={"foreign_keys": "Disbursement.settlement_id"},
+    )
 
     amount_paid: int
     currency: str
