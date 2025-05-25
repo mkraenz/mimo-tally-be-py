@@ -166,13 +166,13 @@ class DisbursementCreate(SQLModel):
     payer_id: str
     paid_for_user_id: str
     comment: str | None = Field(max_length=512, default=None)
-    paid_amount: Money
+    amount_paid: Money
 
 
 class DisbursementPublic(SQLModel):
     @staticmethod
     def make(d: Disbursement):
-        return DisbursementPublic(**d.model_dump(), paid_amount=Money(**d.model_dump()))
+        return DisbursementPublic(**d.model_dump(), amount_paid=Money(**d.model_dump()))
 
     id: uuid.UUID
     payer_id: str
@@ -180,9 +180,25 @@ class DisbursementPublic(SQLModel):
     comment: str | None
     created_at: datetime
     updated_at: datetime
-    paid_amount: Money
+    amount_paid: Money
 
 
 class DisbursementsPublic(SQLModel):
     data: list[DisbursementPublic]
     total: int = Field(int, description="The total count of resources.")
+
+
+class SettlementCreate(SQLModel):
+    settled_at: datetime
+    affected_disbursement_ids: list[str]
+
+
+class Settlement(SQLModel, TimestampedMixin, SoftDeletableMixin, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    # owner: User
+    # receiving_party: User
+    # sending_party: User
+    amount_paid: int
+    currency: str
+    # affected_disbursements: list[Disbursement]
+    settled_at: datetime

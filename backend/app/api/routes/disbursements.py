@@ -23,15 +23,15 @@ def create(dto: DisbursementCreate, session: SessionDep) -> DisbursementPublic:
     disbursement = Disbursement.model_validate(
         dto,
         update={
-            "amount": dto.paid_amount.amount,
-            "currency": dto.paid_amount.currency.value,
+            "amount": dto.amount_paid.amount,
+            "currency": dto.amount_paid.currency.value,
         },
     )
     session.add(disbursement)
     session.commit()
     session.refresh(disbursement)
     return DisbursementPublic(
-        **disbursement.model_dump(), paid_amount=Money(**disbursement.model_dump())
+        **disbursement.model_dump(), amount_paid=Money(**disbursement.model_dump())
     )
 
 
