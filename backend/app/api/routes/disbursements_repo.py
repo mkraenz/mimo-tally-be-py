@@ -15,15 +15,16 @@ class DisbursementsRepository:
 
     def find_one(self, id: UUID4) -> Disbursement | None:
         statement = (
-            select(Disbursement).where(Disbursement.id == id)
-            # .where(
-            #     # https://github.com/fastapi/sqlmodel/issues/109#issuecomment-2585072083
-            #     # Disbursement.deleted_at == None  # noqa E711 Comparison to `None` should be `cond is None`.
-            # )
+            select(Disbursement)
+            .where(Disbursement.id == id)
+            .where(
+                # https://github.com/fastapi/sqlmodel/issues/109#issuecomment-2585072083
+                Disbursement.deleted_at == None  # noqa E711 Comparison to `None` should be `cond is None`.
+            )
         )
         return self.session.exec(statement).one_or_none()
 
-    def soft_delete(self, disbursement: Disbursement):
+    def soft_delete(self, disbursement: Disbursement) -> None:
         disbursement.sqlmodel_update({"deleted_at": datetime.now(timezone.utc)})
         self.session.add(disbursement)
         self.session.commit()

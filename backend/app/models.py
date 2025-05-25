@@ -4,6 +4,7 @@ from enum import Enum
 
 from pydantic import EmailStr
 from pydantic import Field as PdField
+from sqlalchemy import TIMESTAMP, Column, DateTime, func
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -151,6 +152,20 @@ class Disbursement(SQLModel, table=True):
     amount: float
     currency: str
     comment: str | None
+    created_at: datetime | None = Field(
+        None,
+        sa_column=Column(DateTime, server_default=func.now(), nullable=False),
+    )
+    updated_at: datetime | None = Field(
+        None,
+        sa_column=Column(
+            DateTime,
+            server_default=func.now(),
+            onupdate=func.current_timestamp(),
+            nullable=False,
+        ),
+    )
+    deleted_at: datetime | None = None
 
 
 class Money(SQLModel):
@@ -169,8 +184,9 @@ class DisbursementCreate(SQLModel):
 
 
 class DisbursementPublic(SQLModel):
+    # replacing the explicit ref by using from __future__ import annotations did not work. Type system was happy but fastapi broke ¯\_(ツ)_/¯
     @staticmethod
-    def make(d: Disbursement):
+    def make(d: Disbursement) -> "DisbursementPublic":
         return DisbursementPublic(**d.model_dump(), amount_paid=Money(**d.model_dump()))
 
     id: uuid.UUID
@@ -192,7 +208,7 @@ class SettlementCreate(SQLModel):
     affected_disbursement_ids: list[str]
 
 
-class Settlement(SQLModel, table=True):
+class Settlement(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     # owner: User
     # receiving_party: User
@@ -201,3 +217,17 @@ class Settlement(SQLModel, table=True):
     currency: str
     # affected_disbursements: list[Disbursement]
     settled_at: datetime
+    created_at: datetime | None = Field(
+        None,
+        sa_column=Column(TIMESTAMP, server_default=func.now(), nullable=False),
+    )
+    updated_at: datetime | None = Field(
+        None,
+        sa_column=Column(
+            TIMESTAMP,
+            server_default=func.now(),
+            onupdate=func.current_timestamp(),
+            nullable=False,
+        ),
+    )
+    deleted_at: datetime | None = None

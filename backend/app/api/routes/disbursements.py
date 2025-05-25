@@ -35,7 +35,7 @@ def create(dto: DisbursementCreate, session: SessionDep) -> DisbursementPublic:
     )
 
 
-def count(session: SessionDep):
+def count(session: SessionDep) -> int:
     statement = select(func.count()).select_from(Disbursement)
     return session.exec(statement).one()
 

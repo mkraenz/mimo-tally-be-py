@@ -6,5 +6,5 @@ router = APIRouter(prefix="/settlements", tags=["settlements"])
 
 
 @router.post("")
-def create(_session: SessionDep):
+def create(_session: SessionDep) -> None:
     pass
