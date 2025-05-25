@@ -5,6 +5,7 @@ Revises:
 Create Date: 2023-11-24 22:55:43.195942
 
 """
+
 import sqlalchemy as sa
 import sqlmodel.sql.sqltypes
 from alembic import op
@@ -37,10 +38,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("owner_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["owner_id"],
-            ["user.id"],
-        ),
+        sa.ForeignKeyConstraint(["owner_id"], ["user.id"], name="item_owner_id_fkey"),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###

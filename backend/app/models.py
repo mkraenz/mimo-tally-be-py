@@ -48,6 +48,21 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    owned_settlements: list["Settlement"] = Relationship(
+        back_populates="owner",
+        cascade_delete=True,
+        sa_relationship_kwargs={"foreign_keys": "Settlement.owner_id"},
+    )
+    received_settlements: list["Settlement"] = Relationship(
+        back_populates="receiving_party",
+        cascade_delete=True,
+        sa_relationship_kwargs={"foreign_keys": "Settlement.receiving_party_id"},
+    )
+    sent_settlements: list["Settlement"] = Relationship(
+        back_populates="sending_party",
+        cascade_delete=True,
+        sa_relationship_kwargs={"foreign_keys": "Settlement.sending_party_id"},
+    )
 
 
 # Properties to return via API, id is always required
@@ -122,29 +137,6 @@ class Currency(Enum):
     EUR = "EUR"
 
 
-# https://github.com/fastapi/sqlmodel/issues/70#issuecomment-912327485
-# class TimestampedMixin(BaseModel):
-#     created_at: datetime | None = Field(
-#         None,
-#         sa_column=Column(TIMESTAMP, server_default=func.now(), nullable=False),
-#     )
-#     updated_at: datetime | None = Field(
-#         None,
-#         sa_column=Column(
-#             TIMESTAMP,
-#             server_default=func.now(),
-#             onupdate=func.current_timestamp(),
-#             nullable=False,
-#         ),
-#     )
-
-
-# class SoftDeletableMixin(BaseModel):
-#     deleted_at: datetime | None = Field(
-#         None, sa_column=Column(TIMESTAMP, nullable=True)
-#     )
-
-
 class Disbursement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     payer_id: str
@@ -166,6 +158,11 @@ class Disbursement(SQLModel, table=True):
         ),
     )
     deleted_at: datetime | None = None
+    # settlement_id: uuid.UUID = Field(
+    #     foreign_key="settlement.id",
+    #     nullable=False,
+    # )
+    # settlement: "Settlement" = Relationship(back_populates="disbursements")
 
 
 class Money(SQLModel):
@@ -208,14 +205,40 @@ class SettlementCreate(SQLModel):
     affected_disbursement_ids: list[str]
 
 
-class Settlement(SQLModel):
+class Settlement(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    # owner: User
-    # receiving_party: User
-    # sending_party: User
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    owner: User | None = Relationship(
+        back_populates="owned_settlements",
+        sa_relationship_kwargs={"foreign_keys": "Settlement.owner_id"},
+    )
+
+    receiving_party_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    receiving_party: User | None = Relationship(
+        back_populates="received_settlements",
+        sa_relationship_kwargs={"foreign_keys": "Settlement.receiving_party_id"},
+    )
+    sending_party_id: uuid.UUID = Field(
+        foreign_key="user.id",
+        nullable=False,
+        ondelete="CASCADE",
+    )
+    sending_party: User | None = Relationship(
+        back_populates="sent_settlements",
+        sa_relationship_kwargs={"foreign_keys": "Settlement.sending_party_id"},
+    )
+
+    # settled_disbursements: list[Disbursement] = Relationship(
+    #     back_populates="settlement", cascade_delete=True
+    # )
+
     amount_paid: int
     currency: str
-    # affected_disbursements: list[Disbursement]
+
     settled_at: datetime
     created_at: datetime | None = Field(
         None,
