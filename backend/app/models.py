@@ -160,10 +160,18 @@ class Disbursement(SQLModel, table=True):
         sa_relationship_kwargs={"foreign_keys": "Disbursement.owner_id"},
     )
 
-    # TODO turn into foreign key to a User model
-    payer_id: str
-    # TODO turn into foreign key to a User model
-    paid_for_user_id: str
+    paying_party_id: uuid.UUID = Field(
+        nullable=False, foreign_key="user.id", ondelete="CASCADE"
+    )
+    paying_party: User | None = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "Disbursement.paying_party_id"}
+    )
+    on_behalf_of_party_id: uuid.UUID = Field(
+        nullable=False, foreign_key="user.id", ondelete="CASCADE"
+    )
+    on_behalf_of_party: User | None = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "Disbursement.on_behalf_of_party_id"}
+    )
     amount: float
     currency: str
     comment: str | None
@@ -201,8 +209,12 @@ class Money(SQLModel):
 
 
 class DisbursementCreate(SQLModel):
-    payer_id: str
-    paid_for_user_id: str
+    paying_party_id: UUID4 = Field(
+        description="The user who is making the disbursement payment."
+    )
+    on_behalf_of_party_id: UUID4 = Field(
+        description="The user on whose behalf the disbursement is made."
+    )
     comment: str | None = Field(max_length=512, default=None)
     amount_paid: Money
 
@@ -214,8 +226,8 @@ class DisbursementPublic(SQLModel):
         return DisbursementPublic(**d.model_dump(), amount_paid=Money(**d.model_dump()))
 
     id: uuid.UUID
-    payer_id: str
-    paid_for_user_id: str
+    paying_party_id: UUID4
+    on_behalf_of_party_id: UUID4
     comment: str | None
     created_at: datetime
     updated_at: datetime

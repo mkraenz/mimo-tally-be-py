@@ -67,8 +67,8 @@ class DisbursementsRepository:
             select(Disbursement)
             .where(col(Disbursement.id).in_(settled_disbursement_ids))
             .where(col(Disbursement.deleted_at).is_(None))
-            .where(Disbursement.payer_id == receiving_party_id)
-            .where(Disbursement.paid_for_user_id == sending_party_id)
+            .where(Disbursement.paying_party_id == receiving_party_id)
+            .where(Disbursement.on_behalf_of_party_id == sending_party_id)
             .where(col(Disbursement.settlement_id).is_(None))  # i.e. not settled yet
         )
         return self.session.exec(find_affected_disbursements).all()

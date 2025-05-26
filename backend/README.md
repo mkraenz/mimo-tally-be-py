@@ -1,5 +1,10 @@
 # FastAPI Project - Backend
 
+## Domain
+
+- Disbursement = A payment made by A to a third party, on behalf of B.
+- Reimbursement (currently called "Settlements") = The payment by B to pay back A for one or more disbursement.
+
 ## Requirements
 
 - [Docker](https://www.docker.com/).
@@ -123,7 +128,7 @@ When the tests are run, a file `htmlcov/index.html` is generated, you can open i
 
 ## Migrations
 
-As during local development your app directory is mounted as a volume inside the container, you can also run the migrations with `alembic` commands inside the container and the migration code will be in your app directory (instead of being only inside the container). So you can add it to your git repository.
+As during local development your app directory is mounted as a volume inside the container, you can also run the migrations with `alembic` commands ~~inside the container~~ and the migration code will be in your app directory (instead of being only inside the container). So you can add it to your git repository. In fact, for some reason alembic even works from outside the container, so run the commans from your host machine, in the `./backend/` directory.
 
 Make sure you create a "revision" of your models and that you "upgrade" your database with that revision every time you change them. As this is what will update the tables in your database. Otherwise, your application will have errors.
 
@@ -163,7 +168,7 @@ alembic upgrade head
 
 If you don't want to start with the default models and want to remove them / modify them, from the beginning, without having any previous revision, you can remove the revision files (`.py` Python files) under `./backend/app/alembic/versions/`. And then create a first migration as described above.
 
-Normally I would have expected that the generated file becomes available on the host machine because the backend directory is mounted as a volume in the container. But it doesn't seem to work. TODO fix at some point. For the time being, you can use copy the file running the following command on your host machine:
+Normally I would have expected that the generated file becomes available on the host machine because the backend directory is mounted as a volume in the container. But it doesn't seem to work. For the time being, you can use copy the file running the following command on your host machine:
 
 ```sh
 # assuming you are in backend/ directory on the host machine
