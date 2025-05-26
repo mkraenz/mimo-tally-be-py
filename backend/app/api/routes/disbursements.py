@@ -3,9 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Query, status
 from pydantic import UUID4
 
-from app.api.deps import CurrentUser, SessionDep
-from app.api.routes.disbursements_repo import DisbursementRepositoryDep
+from app.api.deps import CurrentUser
 from app.api.routes.http_exceptions import not_found_exception
+from app.core.db import SessionDep
+from app.core.repos.disbursements_repo import DisbursementRepositoryDep
 from app.models import (
     Disbursement,
     DisbursementCreate,

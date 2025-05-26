@@ -1,41 +1,28 @@
-from collections.abc import Generator
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
-from sqlmodel import Session, select
 
 from app.core.auth.oidc import verify_token
-from app.core.config import settings
-from app.core.db import engine
+from app.core.repos.users_repo import UsersRepositoryDep
 from app.models import User
 
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
-)
+bearer_auth_scheme = HTTPBearer()
+
+TokenDep = Annotated[HTTPAuthorizationCredentials, Depends(bearer_auth_scheme)]
 
 
-def get_db() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_db)]
-TokenDep = Annotated[str, Depends(reusable_oauth2)]
-
-
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+def get_current_user(users: UsersRepositoryDep, token: TokenDep) -> User:
     try:
-        token_data = verify_token(token)
+        token_data = verify_token(token.credentials)
     except (InvalidTokenError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         )
-    find_user_by_clerk_uid = select(User).where(User.clerk_user_id == token_data.sub)
-    user = session.exec(find_user_by_clerk_uid).one()
+    user = users.find_one_by_clerk_user_id(token_data.sub)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_active:

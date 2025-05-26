@@ -5,9 +5,10 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import UUID4
 from sqlmodel import col, select
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import CurrentUser
 from app.api.routes.http_exceptions import not_found_exception
-from app.api.routes.settlements_repo import SettlementsRepositoryDep
+from app.core.db import SessionDep
+from app.core.repos.settlements_repo import SettlementsRepositoryDep
 from app.models import (
     Disbursement,
     Settlement,
@@ -19,7 +20,9 @@ from app.models import (
 router = APIRouter(prefix="/settlements", tags=["settlements"])
 
 
-def assert_current_user_is_settling(dto: SettlementCreate, current_user: CurrentUser):
+def assert_current_user_is_settling(
+    dto: SettlementCreate, current_user: CurrentUser
+) -> None:
     # TODO implement that
     # if current_user.id not in [dto.sending_party_id, dto.receiving_party_id]:
     #     raise HTTPException(
@@ -38,7 +41,7 @@ def create(
     dto: SettlementCreate,
     current_user: CurrentUser,
     session: SessionDep,
-):
+) -> Settlement:
     # TODO refactor
     # TODO sender and receiver can be identical
     assert_current_user_is_settling(dto, current_user)
@@ -66,7 +69,7 @@ def create(
     )
 
     # TODO we somehow need to get currencies in here, too.
-    total = reduce(lambda acc, d: acc + d.amount, affected_disbursements, 0)
+    total = reduce(lambda acc, d: acc + d.amount, affected_disbursements, 0.0)
     if total != dto.amount_paid:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -93,7 +96,9 @@ def find_all_owned(
 
 
 @router.get("/{id}", response_model=SettlementPublic)
-def find_one(id: UUID4, current_user: CurrentUser, repo: SettlementsRepositoryDep):
+def find_one(
+    id: UUID4, current_user: CurrentUser, repo: SettlementsRepositoryDep
+) -> Settlement:
     settlement = repo.find_one_owned(id, owner_id=current_user.id)
     if not settlement:
         raise not_found_exception()

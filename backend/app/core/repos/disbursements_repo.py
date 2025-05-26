@@ -7,7 +7,7 @@ from pydantic import UUID4
 from sqlalchemy import func
 from sqlmodel import col, select
 
-from app.api.deps import SessionDep
+from app.core.db import SessionDep
 from app.models import Disbursement
 
 
