@@ -3,14 +3,17 @@ from functools import reduce
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import UUID4
-from sqlmodel import col, select
 
 from app.api.deps import CurrentUser
-from app.api.routes.http_exceptions import not_found_exception
+from app.api.http_exceptions import (
+    not_found_exception,
+    settlement_not_matching_amount_due,
+    settlement_not_matching_disbursements_exception,
+)
 from app.core.db import SessionDep
+from app.core.repos.disbursements_repo import DisbursementRepositoryDep
 from app.core.repos.settlements_repo import SettlementsRepositoryDep
 from app.models import (
-    Disbursement,
     Settlement,
     SettlementCreate,
     SettlementPublic,
@@ -41,25 +44,21 @@ def create(
     dto: SettlementCreate,
     current_user: CurrentUser,
     session: SessionDep,
+    disbursements_repo: DisbursementRepositoryDep,
 ) -> Settlement:
     # TODO refactor
     # TODO sender and receiver can be identical
     assert_current_user_is_settling(dto, current_user)
-    find_affected_disbursements = (
-        select(Disbursement)
-        .where(col(Disbursement.id).in_(dto.settled_disbursement_ids))
-        .where(col(Disbursement.deleted_at).is_(None))
-        .where(Disbursement.payer_id == dto.receiving_party_id)
-        .where(Disbursement.paid_for_user_id == dto.sending_party_id)
-        .where(col(Disbursement.settlement_id).is_(None))  # i.e. not settled yet
+
+    affected_disbursements = disbursements_repo.find_affected_for_settlement(
+        settled_disbursement_ids=dto.settled_disbursement_ids,
+        receiving_party_id=dto.receiving_party_id,
+        sending_party_id=dto.sending_party_id,
     )
-    affected_disbursements = session.exec(find_affected_disbursements).all()
+
     # this simple check works thanks to uniqueness constraints in db and on the dto
     if not len(affected_disbursements) == len(dto.settled_disbursement_ids):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Some or all disbursements listed in settled_disbursement_ids have not been found or are otherwise do not refer correctly to payer or paid parties of some of those disbursements. Make sure that you are the receiving party for every disbursement listed in settled_disbursement_ids (i.e. somebody paid for you).",
-        )
+        raise settlement_not_matching_disbursements_exception()
     settlement = Settlement.model_validate(
         dto,
         update={
@@ -71,10 +70,7 @@ def create(
     # TODO we somehow need to get currencies in here, too.
     total = reduce(lambda acc, d: acc + d.amount, affected_disbursements, 0.0)
     if total != dto.amount_paid:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="The amount due of all affected disbursements does not match the amount provided in the request body.",
-        )
+        raise settlement_not_matching_amount_due()
 
     for disbursement in affected_disbursements:
         disbursement.sqlmodel_update({"settlement_id": settlement.id})

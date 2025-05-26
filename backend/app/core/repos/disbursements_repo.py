@@ -48,5 +48,21 @@ class DisbursementsRepository:
         self.session.add(disbursement)
         self.session.commit()
 
+    def find_affected_for_settlement(
+        self,
+        settled_disbursement_ids: list[str],
+        receiving_party_id: UUID4,
+        sending_party_id: UUID4,
+    ) -> Sequence[Disbursement]:
+        find_affected_disbursements = (
+            select(Disbursement)
+            .where(col(Disbursement.id).in_(settled_disbursement_ids))
+            .where(col(Disbursement.deleted_at).is_(None))
+            .where(Disbursement.payer_id == receiving_party_id)
+            .where(Disbursement.paid_for_user_id == sending_party_id)
+            .where(col(Disbursement.settlement_id).is_(None))  # i.e. not settled yet
+        )
+        return self.session.exec(find_affected_disbursements).all()
+
 
 DisbursementRepositoryDep = Annotated[DisbursementsRepository, Depends()]
