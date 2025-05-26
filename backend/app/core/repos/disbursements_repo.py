@@ -15,6 +15,15 @@ class DisbursementsRepository:
     def __init__(self, session: SessionDep) -> None:
         self.session = session
 
+    def create_and_refresh(self, disbursement: Disbursement) -> None:
+        """
+        Creates a new disbursement record in the database.
+        WARNING: Refreshes the `disbursement` object in place with the new ID and other fields from the database.
+        """
+        self.session.add(disbursement)
+        self.session.commit()
+        self.session.refresh(disbursement)
+
     def find_one_owned(self, id: UUID4, owner_id: UUID4) -> Disbursement | None:
         statement = (
             select(Disbursement)

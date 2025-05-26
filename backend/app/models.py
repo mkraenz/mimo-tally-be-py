@@ -160,7 +160,9 @@ class Disbursement(SQLModel, table=True):
         sa_relationship_kwargs={"foreign_keys": "Disbursement.owner_id"},
     )
 
+    # TODO turn into foreign key to a User model
     payer_id: str
+    # TODO turn into foreign key to a User model
     paid_for_user_id: str
     amount: float
     currency: str

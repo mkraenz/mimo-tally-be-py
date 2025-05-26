@@ -5,7 +5,6 @@ from pydantic import UUID4
 
 from app.api.deps import CurrentUser
 from app.api.http_exceptions import not_found_exception
-from app.core.db import SessionDep
 from app.core.repos.disbursements_repo import DisbursementRepositoryDep
 from app.models import (
     Disbursement,
@@ -19,17 +18,18 @@ router = APIRouter(prefix="/disbursements", tags=["disbursements"])
 
 
 @router.post("/", response_model=DisbursementPublic)
-def create(dto: DisbursementCreate, session: SessionDep) -> DisbursementPublic:
+def create(
+    dto: DisbursementCreate, repo: DisbursementRepositoryDep, current_user: CurrentUser
+) -> DisbursementPublic:
     disbursement = Disbursement.model_validate(
         dto,
         update={
             "amount": dto.amount_paid.amount,
             "currency": dto.amount_paid.currency.value,
+            "owner_id": current_user.id,
         },
     )
-    session.add(disbursement)
-    session.commit()
-    session.refresh(disbursement)
+    repo.create_and_refresh(disbursement)
     return DisbursementPublic(
         **disbursement.model_dump(), amount_paid=Money(**disbursement.model_dump())
     )
