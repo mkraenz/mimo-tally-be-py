@@ -49,6 +49,11 @@ class Settings(BaseSettings):
             self.FRONTEND_HOST
         ]
 
+    CLERK_DOMAIN: str
+    CLERK_AUDIENCE: str
+    CLERK_ISSUER: str
+    INSECURE_SKIP_JWT_EXPIRATION_CHECK: bool = False
+
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
     POSTGRES_SERVER: str
