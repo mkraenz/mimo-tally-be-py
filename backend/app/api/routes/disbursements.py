@@ -17,7 +17,9 @@ from app.models import (
 router = APIRouter(prefix="/disbursements", tags=["disbursements"])
 
 
-@router.post("/", response_model=DisbursementPublic)
+@router.post(
+    "/", response_model=DisbursementPublic, status_code=status.HTTP_201_CREATED
+)
 def create(
     dto: DisbursementCreate, repo: DisbursementRepositoryDep, current_user: CurrentUser
 ) -> DisbursementPublic:

@@ -5,11 +5,34 @@ from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
 from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+from app.tests.utils.utils import random_email
 
 
-def create_user(*, session: Session, user_create: UserCreate) -> User:
+def create_user(
+    *, session: Session, user_create: UserCreate, clerk_user_id: str = ""
+) -> User:
     db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+        user_create,
+        update={
+            "hashed_password": get_password_hash(user_create.password),
+            "clerk_user_id": clerk_user_id,
+        },
+    )
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
+
+
+def create_user_new(*, session: Session, clerk_user_id: str) -> User:
+    email = random_email()
+    user_create = UserCreate(email=email, password="irrelevant")
+    db_obj = User.model_validate(
+        user_create,
+        update={
+            "hashed_password": get_password_hash("irrelevant"),
+            "clerk_user_id": clerk_user_id,
+        },
     )
     session.add(db_obj)
     session.commit()

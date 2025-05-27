@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     CLERK_AUDIENCE: str
     CLERK_ISSUER: str
     INSECURE_SKIP_JWT_EXPIRATION_CHECK: bool = False
+    TEST_JWT: str = ""
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None

@@ -34,7 +34,7 @@ def assert_current_user_is_settling(
         )
 
 
-@router.post("/", response_model=SettlementPublic)
+@router.post("/", response_model=SettlementPublic, status_code=status.HTTP_201_CREATED)
 def create(
     dto: SettlementCreate,
     current_user: CurrentUser,

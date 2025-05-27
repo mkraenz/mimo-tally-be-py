@@ -24,9 +24,14 @@ def get_current_user(users: UsersRepositoryDep, token: TokenDep) -> User:
         )
     user = users.find_one_by_clerk_user_id(token_data.sub)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        # we could not find the user, but we trust our Identity Provider
+        # so we create a new user record
+        created = users.create(
+            clerk_user_id=token_data.sub,
+        )
+        return created
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=401, detail="Inactive user")
     return user
 
 

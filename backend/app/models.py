@@ -204,6 +204,7 @@ class Money(SQLModel):
     amount: float = PdField(
         description="The amount paid in the specified currency.",
         examples=[1.0],
+        # TODO decimal places=2
     )
     currency: Currency = Field(Currency.EUR)
 
