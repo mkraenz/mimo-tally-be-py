@@ -227,8 +227,9 @@ class DisbursementPublic(SQLModel):
         return DisbursementPublic(**d.model_dump(), amount_paid=Money(**d.model_dump()))
 
     id: uuid.UUID
-    paying_party_id: UUID4
-    on_behalf_of_party_id: UUID4
+    owner_id: uuid.UUID
+    paying_party_id: uuid.UUID
+    on_behalf_of_party_id: uuid.UUID
     comment: str | None
     created_at: datetime
     updated_at: datetime

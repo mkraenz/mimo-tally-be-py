@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -11,7 +13,7 @@ def test_create_disbursement(
     clerk_user_id = "user_2uYtK90rO3HFzRhvuAU8GVBZeqR"
     user = create_user_new(session=db, clerk_user_id=clerk_user_id)
 
-    data = {
+    data: dict[str, Any] = {
         "amount_paid": {"amount": 10.50, "currency": "EUR"},
         "comment": "food",
         "on_behalf_of_party_id": str(user.id),
@@ -22,14 +24,13 @@ def test_create_disbursement(
         headers=superuser_token_headers,
         json=data,
     )
-    # assert response.status_code == 201
-    content = response.json()
-    assert content["amount_paid"] == data["amount_paid"]
-    assert content["comment"] == data["comment"]
-    assert content["on_behalf_of_party_id"] == data["on_behalf_of_party_id"]
-    assert content["paying_party_id"] == data["paying_party_id"]
-    assert "id" in content
-    # TODO add prop
-    # assert "owner_id" in content
-    assert "updated_at" in content
-    assert "created_at" in content
+    assert response.status_code == 201
+    body = response.json()
+    assert body["amount_paid"] == data["amount_paid"]
+    assert body["comment"] == data["comment"]
+    assert body["on_behalf_of_party_id"] == data["on_behalf_of_party_id"]
+    assert body["paying_party_id"] == data["paying_party_id"]
+    assert "id" in body
+    assert "owner_id" in body
+    assert "updated_at" in body
+    assert "created_at" in body
