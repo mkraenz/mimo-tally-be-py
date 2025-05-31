@@ -4,14 +4,14 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.config import settings
-from app.crud import create_user_new
+from app.crud import ensure_user_exists
 
 
 def test_create_disbursement(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     clerk_user_id = "user_2uYtK90rO3HFzRhvuAU8GVBZeqR"
-    user = create_user_new(session=db, clerk_user_id=clerk_user_id)
+    user = ensure_user_exists(session=db, clerk_user_id=clerk_user_id)
 
     data: dict[str, Any] = {
         "amount_paid": {"amount": 10.50, "currency": "EUR"},

@@ -20,11 +20,6 @@ class UsersRepository:
     ) -> User:
         user = User(
             clerk_user_id=clerk_user_id,
-            is_active=is_active,
-            is_superuser=is_superuser,
-            # TODO this wont work for more than one user bc of uniqueness of emails
-            email="a@b.com",
-            hashed_password="hashed_password",
         )
         self.session.add(user)
         self.session.commit()

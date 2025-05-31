@@ -184,3 +184,14 @@ The email templates are in `./backend/app/email-templates/`. Here, there are two
 Before continuing, ensure you have the [MJML extension](https://marketplace.visualstudio.com/items?itemName=attilabuti.vscode-mjml) installed in your VS Code.
 
 Once you have the MJML extension installed, you can create a new email template in the `src` directory. After creating the new email template and with the `.mjml` file open in your editor, open the command palette with `Ctrl+Shift+P` and search for `MJML: Export to HTML`. This will convert the `.mjml` file to a `.html` file and now you can save it in the build directory.
+
+## Testing
+
+E2E tests currently run against the same database instance. Additionally, the switch to an external JWT provider (Clerk) makes it even more difficult.
+
+Suggested solution to achieve more test isolation
+
+- create self-signed JWTs for testing
+- run tests against a separate test database instance - ideally even each test in a separate database instance, or at least each test file
+
+For the time being, I'm using `ensure_user_exists` method in several files. But that might cause race conditions depending on how pytest runs the tests (which is sequentially by default it seems, so we should be fine... though obviously that can become slow over time).

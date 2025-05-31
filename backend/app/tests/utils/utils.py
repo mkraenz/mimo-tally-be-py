@@ -12,6 +12,7 @@ def random_email() -> str:
     return f"{random_lower_string()}@{random_lower_string()}.com"
 
 
+# TODO rm
 def get_superuser_token_headers() -> dict[str, str]:
     token = settings.TEST_JWT
     headers = {"Authorization": f"Bearer {token}"}
