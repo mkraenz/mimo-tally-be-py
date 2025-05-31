@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt import PyJWKClientError
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 
@@ -17,7 +18,8 @@ TokenDep = Annotated[HTTPAuthorizationCredentials, Depends(bearer_auth_scheme)]
 def get_current_user(users: UsersRepositoryDep, token: TokenDep) -> User:
     try:
         token_data = verify_token(token.credentials)
-    except (InvalidTokenError, ValidationError):
+    except (InvalidTokenError, ValidationError, PyJWKClientError):
+        # PyJWKClientError can occur if the JWKS endpoint is unreachable or the kid mentioned in the header was not found in the JWKS, e.g. if someone sends a JWT from a different issuer
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
