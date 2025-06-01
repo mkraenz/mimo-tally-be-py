@@ -93,8 +93,7 @@ resource "google_cloud_run_v2_service" "mimo_tally_python_service" {
       }
       env {
         name = "BACKEND_CORS_ORIGINS"
-        # TODO localhost shouldnt be in here. remove. only set for testing
-        value = "http://localhost:5173,https://localhost:5173,https://tally.kraenz.eu/"
+        value = "https://tally.kraenz.eu"
       }
       env {
         name  = "SECRET_KEY"
@@ -124,6 +123,7 @@ resource "google_cloud_run_v2_service" "mimo_tally_python_service" {
         name  = "POSTGRES_USER"
         value = var.postgres_user
       }
+      # TODO this should really be an encrypted secret e.g. in GCP Secret Manager
       env {
         name  = "POSTGRES_PASSWORD"
         value = var.postgres_password
