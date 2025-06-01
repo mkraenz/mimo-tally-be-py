@@ -70,7 +70,6 @@ def create(
 
     # TODO we somehow need to get currencies in here, too.
     total = round(reduce(to_total_amount_due, affected_disbursements, 0.0), 2)
-    print("Amount due:", total)
     if total != -dto.amount_paid:
         raise settlement_not_matching_amount_due()
 
