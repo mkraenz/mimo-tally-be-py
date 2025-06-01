@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import Depends
 from pydantic import UUID4
 from sqlalchemy import func
-from sqlmodel import col, select
+from sqlmodel import col, or_, select
 
 from app.core.db import SessionDep
 from app.models import Disbursement
@@ -44,6 +44,34 @@ class DisbursementsRepository:
         )
         return self.session.exec(get_all).all()
 
+    def find_all_between(
+        self,
+        first_user_id: UUID4,
+        second_user_id: UUID4,
+        limit: int,
+        offset: int,
+        exclude_settled: bool,
+    ) -> Sequence[Disbursement]:
+        get_all_between = (
+            select(Disbursement)
+            .where(col(Disbursement.deleted_at).is_(None))
+            .where(
+                or_(
+                    Disbursement.paying_party_id == first_user_id
+                    and Disbursement.on_behalf_of_party_id == second_user_id,
+                    Disbursement.on_behalf_of_party_id == first_user_id
+                    and Disbursement.paying_party_id == second_user_id,
+                )
+            )
+            .offset(offset)
+            .limit(limit)
+        )
+        if exclude_settled:
+            get_all_between = get_all_between.where(
+                col(Disbursement.settlement_id).is_(None)
+            )
+        return self.session.exec(get_all_between).all()
+
     def count_owned(self, owner_id: UUID4) -> int:
         statement = (
             select(func.count())
@@ -67,8 +95,14 @@ class DisbursementsRepository:
             select(Disbursement)
             .where(col(Disbursement.id).in_(settled_disbursement_ids))
             .where(col(Disbursement.deleted_at).is_(None))
-            .where(Disbursement.paying_party_id == receiving_party_id)
-            .where(Disbursement.on_behalf_of_party_id == sending_party_id)
+            .where(
+                or_(
+                    Disbursement.paying_party_id == receiving_party_id
+                    and Disbursement.on_behalf_of_party_id == sending_party_id,
+                    Disbursement.on_behalf_of_party_id == receiving_party_id
+                    and Disbursement.paying_party_id == sending_party_id,
+                )
+            )
             .where(col(Disbursement.settlement_id).is_(None))  # i.e. not settled yet
         )
         return self.session.exec(find_affected_disbursements).all()

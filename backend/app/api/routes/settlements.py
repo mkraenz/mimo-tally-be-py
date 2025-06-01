@@ -14,6 +14,7 @@ from app.core.db import SessionDep
 from app.core.repos.disbursements_repo import DisbursementRepositoryDep
 from app.core.repos.settlements_repo import SettlementsRepositoryDep
 from app.models import (
+    Disbursement,
     Settlement,
     SettlementCreate,
     SettlementPublic,
@@ -62,9 +63,15 @@ def create(
         },
     )
 
+    def to_total_amount_due(acc: float, d: Disbursement) -> float:
+        if d.paying_party_id != dto.sending_party_id:
+            return acc - d.amount
+        return acc + d.amount
+
     # TODO we somehow need to get currencies in here, too.
-    total = reduce(lambda acc, d: acc + d.amount, affected_disbursements, 0.0)
-    if total != dto.amount_paid:
+    total = round(reduce(to_total_amount_due, affected_disbursements, 0.0), 2)
+    print("Amount due:", total)
+    if total != -dto.amount_paid:
         raise settlement_not_matching_amount_due()
 
     for disbursement in affected_disbursements:

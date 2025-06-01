@@ -38,13 +38,30 @@ def create(
 
 
 @router.get("/")
-def find_all(
+def find_all_owned(
     current_user: CurrentUser,
     repo: DisbursementRepositoryDep,
     limit: Annotated[int, Query(max=100)] = 10,
     offset: Annotated[int, Query(min=0)] = 0,
 ) -> DisbursementsPublic:
     disbursements = repo.find_all_owned(current_user.id, limit, offset)
+    data = list(map(DisbursementPublic.make, disbursements))
+    total = repo.count_owned(current_user.id)
+    return DisbursementsPublic(data=data, total=total)
+
+
+@router.get("/users/{other_user_id}")
+def find_all_with_user(
+    other_user_id: UUID4,
+    current_user: CurrentUser,
+    repo: DisbursementRepositoryDep,
+    limit: Annotated[int, Query(max=100)] = 10,
+    offset: Annotated[int, Query(min=0)] = 0,
+    exclude_settled: bool = True,
+) -> DisbursementsPublic:
+    disbursements = repo.find_all_between(
+        current_user.id, other_user_id, limit, offset, exclude_settled
+    )
     data = list(map(DisbursementPublic.make, disbursements))
     total = repo.count_owned(current_user.id)
     return DisbursementsPublic(data=data, total=total)
