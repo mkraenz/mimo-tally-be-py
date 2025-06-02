@@ -69,8 +69,9 @@ def create(
         return acc + d.amount
 
     # TODO we somehow need to get currencies in here, too.
-    total = round(reduce(to_total_amount_due, affected_disbursements, 0.0), 2)
-    if total != -dto.amount_paid:
+    total = reduce(to_total_amount_due, affected_disbursements, 0.0)
+    rounded_total = round(total, 2)
+    if rounded_total != -dto.amount_paid:
         raise settlement_not_matching_amount_due()
 
     for disbursement in affected_disbursements:
