@@ -18,6 +18,8 @@
 
 Deployed to Google Cloud Run using Terraform. See `infra/` dir.
 
+Theres still old boilerplate in Deployment docs: [deployment.md](./deployment.md). I still have to read through it to decide what to delete exactly, particularly wrt to all the GitHub Actions things.
+
 ### Some env vars
 
 The input variables, with their default values (some auto generated) are:
@@ -29,10 +31,6 @@ The input variables, with their default values (some auto generated) are:
 ## Backend Development
 
 Backend docs: [backend/README.md](./backend/README.md).
-
-## Deployment
-
-Deployment docs: [deployment.md](./deployment.md).
 
 ## Development
 
