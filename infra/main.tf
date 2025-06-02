@@ -67,8 +67,8 @@ resource "google_cloud_run_v2_service" "mimo_tally_python_service" {
       }
       resources {
         limits = {
-          cpu    = "2"
-          memory = "1024Mi"
+          cpu    = "2000m"
+          memory = "1Gi"
         }
       }
       env {

@@ -22,7 +22,7 @@ IMAGE_NAME='mimo-tally-py-backend'
 TAG='latest'
 
 # tag local image
-# Q: Why inclued the registry in the tag? A: Tagging the Docker image with a repository name configures the docker push command to push the image to a specific location.
+# Q: Why include the registry in the tag? A: Tagging the Docker image with a repository name configures the docker push command to push the image to a specific location.
 docker tag ${LOCAL_IMAGE_IDENTIFIER} \
 ${REGION}-docker.pkg.dev/${PROJECT}/${REPO_ID}/${IMAGE_NAME}:${TAG}
 
