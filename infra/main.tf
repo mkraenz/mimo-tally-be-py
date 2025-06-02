@@ -117,9 +117,9 @@ resource "google_cloud_run_v2_service" "mimo_tally_python_service" {
         value = "https://clerk.tally.kraenz.eu"
       }
       env {
+        # only use this for testing
         name = "INSECURE_SKIP_JWT_EXPIRATION_CHECK"
-        # TODO only for testing
-        value = "true"
+        value = "false"
       }
     }
   }
