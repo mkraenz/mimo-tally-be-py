@@ -38,10 +38,3 @@ def get_current_user(users: UsersRepositoryDep, token: TokenDep) -> User:
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
-
-
-# TODO remove
-def get_current_active_superuser(_current_user: CurrentUser) -> User:
-    raise HTTPException(
-        status_code=403, detail="The user doesn't have enough privileges"
-    )

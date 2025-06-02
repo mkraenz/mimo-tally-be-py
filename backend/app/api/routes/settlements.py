@@ -27,7 +27,6 @@ router = APIRouter(prefix="/settlements", tags=["settlements"])
 def assert_current_user_is_settling(
     dto: SettlementCreate, current_user: CurrentUser
 ) -> None:
-    # TODO currently only the sending party can create a settlement
     if current_user.id not in [dto.sending_party_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
