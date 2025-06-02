@@ -26,7 +26,6 @@ The input variables, with their default values (some auto generated) are:
 
 - `project_name`: (default: `"FastAPI Project"`) The name of the project, shown to API users (in .env).
 - `stack_name`: (default: `"fastapi-project"`) The name of the stack used for Docker Compose labels and project name (no spaces, no periods) (in .env).
-- `sentry_dsn`: (default: "") The DSN for Sentry, if you are using it, you can set it later in .env.
 
 ## Backend Development
 
