@@ -33,13 +33,6 @@ variable "postgres_password" {
   type      = string
   sensitive = true
 }
-variable "superuser_email" {
-  type = string
-}
-variable "superuser_password" {
-  type      = string
-  sensitive = true
-}
 
 
 # # just for testing that tf apply works
@@ -79,11 +72,6 @@ resource "google_cloud_run_v2_service" "mimo_tally_python_service" {
         }
       }
       env {
-        # TODO this is actually not used anymore. remove
-        name  = "FRONTEND_HOST"
-        value = "https://example.com"
-      }
-      env {
         name  = "ENVIRONMENT"
         value = "staging"
       }
@@ -94,18 +82,6 @@ resource "google_cloud_run_v2_service" "mimo_tally_python_service" {
       env {
         name = "BACKEND_CORS_ORIGINS"
         value = "https://tally.kraenz.eu"
-      }
-      env {
-        name  = "SECRET_KEY"
-        value = "remove env var"
-      }
-      env {
-        name  = "FIRST_SUPERUSER"
-        value = var.superuser_email
-      }
-      env {
-        name  = "FIRST_SUPERUSER_PASSWORD"
-        value = var.superuser_password
       }
       env {
         name  = "POSTGRES_SERVER"
