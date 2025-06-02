@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 
-from app.core.config import Settings
+from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
 from app.models import User
@@ -26,9 +26,8 @@ def client() -> Generator[TestClient, None, None]:
         yield c
 
 
-# TODO rename. not a token of the superuser
 @pytest.fixture(scope="module")
-def superuser_token_headers() -> dict[str, str]:
-    token = Settings.TEST_JWT
+def user_token_headers() -> dict[str, str]:
+    token = settings.TEST_JWT
     headers = {"Authorization": f"Bearer {token}"}
     return headers

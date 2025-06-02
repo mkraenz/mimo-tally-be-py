@@ -8,7 +8,7 @@ from app.crud import ensure_user_exists
 
 
 def test_create_disbursement(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, user_token_headers: dict[str, str], db: Session
 ) -> None:
     clerk_user_id = "user_2uYtK90rO3HFzRhvuAU8GVBZeqR"
     user = ensure_user_exists(session=db, clerk_user_id=clerk_user_id)
@@ -21,7 +21,7 @@ def test_create_disbursement(
     }
     response = client.post(
         f"{settings.API_V1_STR}/disbursements/",
-        headers=superuser_token_headers,
+        headers=user_token_headers,
         json=data,
     )
     assert response.status_code == 201
